@@ -1,1 +1,1 @@
-# Highcharter-by-quarto
+# Highcharter-package-by-Quarto

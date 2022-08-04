@@ -1,0 +1,475 @@
+---
+title: "Highchart"
+format: revealjs
+author: "고준혁"
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(magrittr)
+library(tidyverse)
+library(highcharter)
+library(data.table)
+library(curl)
+
+survey18<-read.csv("C:/Users/HP user/Documents/survey_results_public.csv")
+```
+
+## INTRO
+
+<center>![How to visualize](https://blogs.sap.com/wp-content/uploads/2016/12/chart.jpg){width="80%"}</center>
+
+## I. 들어가는 글
+
+</br> - 데이터는 중요하다. </br> </br>
+
+-   그러나, 데이터를 이해하여 그것을 가공해 활용할 수 없다면</br> </br>데이터는 무의미하다. </br> </br>
+
+-   그렇기에 데이터 시각화는 데이터를 적시에 적절한 사람에게</br> </br> 제공하는 가장 효과적인 수단이다.
+
+## I. highchart의 특징: ggplot2 그래프
+
+```{r}
+dt<-fread("https://raw.githubusercontent.com/jinseob2kim/lecture-snuhlab/master/data/example_g1e.csv")
+dt1 <- dt %>%select(c(EXMD_BZ_YYYY, WGHT, HGHT, BMI))
+gg<-dt1 %>% count(EXMD_BZ_YYYY)
+ggplot(data=gg, aes(x=factor(EXMD_BZ_YYYY), y=n)) +
+  geom_bar(stat='identity',fill='grey', color='black') +
+  xlab("YEAR")
+```
+
+## I. highchart의 특징: highchart 그래프
+
+```{r}
+dt1 %>% count(EXMD_BZ_YYYY) %>% hchart('column',hcaes(x="EXMD_BZ_YYYY",y='n'))
+```
+
+## highchart package
+
+<center>![highchart](https://wp-assets.highcharts.com/svg/logo_mark.svg){width="60%"}</center>
+
+## II. 사용할 데이터
+
+</br> </br> </br> - **예시용**: survey_results_public.csv </br> </br> - **실습용**: example_g1e.csv + 내재된 데이터(mtcars, iris 등) </br> </br> dt\<-fread("https://raw.githubusercontent.com/jinseob2kim/lecture-snuhlab/master/data/example_g1e.csv")
+
+## II. highchart 기본 구조 (1)
+
+</br> </br> **highchart( ) 와 hchart( ) 의 차이점?** </br> </br> </br> - highchart( ) ≒ ggplot( ) </br> </br> - hchart( ) ≒ qplot( )
+
+## II. highchart 기본구조 (2)
+
+</br> **highchart( )란 ?** </br> </br> </br> **highchart( )의 기본구조**
+
+hchart( data, type of chart, hcaes(aesthetics), ... )
+
+-   data: 차트를 만들 데이터를 적는 곳
+
+-   type of chart: 어떤 종류의 차트를 그릴 지 구체화
+
+-   hcaes(aes): 그림의 X축, Y축을 정하는 곳
+
+-   기타 : hc_add_series, hc_add_theme, hc_title 등
+
+## II. hchart
+
+</br> </br> **1. 막대그래프 시리즈** </br> </br> - type of chart 에 **column, bar, line** 등을 기입 </br> </br> </br> - 가장 기본적인 그래프 + 활용하기 가장 용이함
+
+## II. hchart - Column
+
+```{r}
+survey18<-read.csv("C:/Users/HP user/Documents/survey_results_public.csv")
+```
+
+```{r, echo=T, eval=T}
+survey18 %>% 
+  count(HopeFiveYears) %>% 
+  hchart('column', hcaes(x="HopeFiveYears", y="n"))
+```
+
+## II. hchart - Bar
+
+```{r, echo=T, eval=T}
+survey18 %>% 
+  count(HopeFiveYears) %>% 
+  hchart('bar', hcaes(x="HopeFiveYears", y="n"))
+```
+
+## II. hchart - Bar
+
+```{r, echo=T, eval=T}
+survey18 %>% 
+  count(HopeFiveYears, Employment) %>% 
+  hchart('bar', hcaes(x="HopeFiveYears", y="n", group="Employment"))
+```
+
+## II. hchart_add 기본
+
+</br> - **hc_title**
+
+(**text** = 'title' , **align** = 'center',
+
+**style** = list(fontWeight='bold', fontSize = 'Npx'))
+
+-   **hc_credits** (**enabled** = T, **text** = 'caption')
+
+-   **hc_colors** ('color')
+
+-   **hc_add_theme**(hc_theme( ))
+
+## II. hchart_add 심화
+
+</br> - **hc_add_series**
+
+-   **hc_tooltip**
+
+-   **hc_xAxis** , **hc_yAxis**
+
+-   **hc_plotOptions**
+
+## II. hc_tooltip
+
+```{r,echo=F, eval=T}
+highchart() %>%
+  hc_add_series(data = sample(1:12)) %>%
+  hc_add_series(data = sample(1:12) + 10) %>%
+  hc_tooltip(
+    crosshairs = TRUE,
+    borderWidth = 5,
+    sort = TRUE,
+    table = TRUE
+  )
+```
+
+## II. hchart_add 심화
+
+</br> - **hc_add_series**
+
+-   **hc_tooltip**
+
+-   **hc_xAxis** , **hc_yAxis**
+
+-   **hc_plotOptions**
+
+## II. hc_xAxis & hc_yAxis
+
+```{r, echo=F, eval=T}
+highchart() %>%
+  hc_add_series(
+    data = c(7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6),
+    type = "spline"
+  ) %>%
+  hc_xAxis(
+    title = list(text = "x Axis at top"),
+    alternateGridColor = "#FDFFD5",
+    opposite = TRUE,
+    plotLines = list(
+      list(
+        label = list(text = "This is a plotLine"),
+        color = "#FF0000",
+        width = 2,
+        value = 5.5
+      )
+    )
+  )
+```
+
+## II. hchart_add 심화
+
+</br> - **hc_add_series**
+
+-   **hc_tooltip**
+
+-   **hc_xAxis** , **hc_yAxis**
+
+-   **hc_plotOptions**
+
+## II. hc_plotOtions
+
+```{r, eval=T, echo=F}
+highchart() %>%
+  hc_add_series(
+    data = c(29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4)
+  ) %>%
+  hc_plotOptions(
+    line = list(
+      color = "blue",
+      marker = list(
+        fillColor = "white",
+        lineWidth = 2,
+        lineColor = NULL
+      )
+    )
+  )
+```
+
+## II. EXAMPLE
+
+</br> </br>
+
+```{r,eval=F,echo=T}
+survey18 %>% 
+  count(HopeFiveYears) %>% 
+  hchart('column', hcaes(x="HopeFiveYears", y="n")) %>% 
+  hc_title(text="Hoping what to do in 5 years", align='center') %>% 
+  hc_colors("red") %>% 
+  hc_add_theme(hc_theme_538()) %>% 
+  hc_credits(enabled=T, text="survey_public_18")
+```
+
+## II. EXAMPLE
+
+</br>
+
+```{r,eval=T, echo=F}
+survey18 %>% 
+  count(HopeFiveYears) %>% 
+  hchart('column', hcaes(x="HopeFiveYears", y="n")) %>% 
+  hc_title(text="Hoping what to do in 5 years", align='center') %>% 
+  hc_colors("red") %>% 
+  hc_add_theme(hc_theme_538()) %>% 
+  hc_credits(enabled=T, text="survey_public_18")
+```
+
+## II. hchart - 3D
+
+```{r,eval=T, echo=F}
+  survey18 %>% 
+  filter(!is.na(Gender)) %>% 
+  filter(Gender %in% c('Male', 'Female')) %>% 
+  count(Gender) -> Gender
+```
+
+```{r,eval=T,echo=T}
+highchart() %>% 
+  hc_chart(type="column",
+           options3d=list(enabled=T, beta=15, alpha=15)) %>% 
+  hc_xAxis(categories = Gender$Gender) %>% 
+  hc_add_series(data=Gender$n, name="Gender") %>% 
+  hc_colors("blue")
+```
+
+## II. hchart - Line
+
+```{r, echo=T, eval=T}
+data(economics_long, package="ggplot2")
+economics_long2<-filter(economics_long, variable %in% c("pop", "uempmed", "unemploy"))
+hchart(economics_long2, "line", hcaes(x=date, y=value01, group=variable))
+```
+
+## II. hchart - Area Charts
+
+```{r, echo=T, eval=T}
+survey18 %>% 
+  count(HopeFiveYears) %>% 
+  hchart('area', hcaes(x="HopeFiveYears", y="n"))
+```
+
+## II. hchart - Area Charts
+
+```{r, echo=T, eval=T}
+survey18 %>% 
+  count(HopeFiveYears,Employment) %>% 
+  hchart('area', hcaes(x="HopeFiveYears", y="n", group="Employment"))
+```
+
+## II. hchart - Area Charts
+
+```{r, echo=T, eval=T}
+survey18 %>% 
+  count(HopeFiveYears) %>% 
+  hchart('areaspline', hcaes(x="HopeFiveYears", y="n"))
+```
+
+## II. hchart - Scatter Plot (1)
+
+```{r, echo=T, eval=T}
+dt1 %>% 
+  hchart(type='scatter', hcaes(x="WGHT", y="HGHT"))
+```
+
+## II. hchart - Treemap
+
+```{r, echo=T, eval=T}
+survey18 %>% 
+  filter(!is.na(Age)) %>% 
+  count(Age) %>% 
+  hchart('treemap', hcaes(x='Age', value='n', color='n'))%>%
+  hc_colorAxis(minColor='pink', maxColor='lightblue')
+```
+
+## II. hchart - Pie Charts
+
+```{r, echo=T, eval=T}
+survey18 %>% 
+  count(HopeFiveYears) %>% 
+  hchart(type = 'pie', hcaes(HopeFiveYears, n))
+```
+
+## III. 다양한 그래프 형태 (1)
+
+```{r, echo=F, eval=T}
+library(survival)
+data(cancer, package='survival')
+lung<-dplyr::mutate(cancer, sex=ifelse(sex==1, 'Male', 'Female'))
+fit<-survfit(Surv(time, status) ~ sex, data = lung)
+hchart(fit, ranges=T) %>% 
+  hc_title(text="Principal Component Analysis", align='center')
+```
+
+## III. 다양한 그래프 형태 (2)
+
+```{r, echo=F, eval=T}
+library(dplyr)
+data(pokemon)
+
+lvl_opts <-  list(
+    list(
+      level = 1,
+      borderWidth = 0,
+      borderColor = "transparent",
+      dataLabels = list(
+        enabled = TRUE,
+        align = "left",
+        verticalAlign = "top",
+        style = list(
+          fontSize = "12px", 
+          textOutline = FALSE,
+          color = "white",
+          fontWeight = "normal"
+          )
+      )
+    ),
+    list(
+      level = 2,
+      borderWidth = 0,
+      borderColor = "transparent",
+      colorVariation = list(key = "brightness", to = 0.250),
+      dataLabels = list(enabled = FALSE),
+      style = list(
+        fontSize = "8px",
+        textOutline = FALSE, 
+        color = "white", 
+        fontWeight = "normal"
+        )
+    )
+  )
+
+pkmn_min <- pokemon %>% 
+  select(type_1, type_2, type_1_color) %>%
+  mutate(type_1 = stringr::str_to_title(type_1)) %>% 
+  mutate(type_2 = ifelse(is.na(type_2), type_1, paste(type_1, "-", type_2))) %>%
+  mutate(val = 1)
+
+cols <- pkmn_min %>% 
+  count(type_1, type_2, type_1_color, sort = TRUE) %>% 
+  pull(type_1_color) %>% 
+  unique()
+
+hchart(
+  data_to_hierarchical(pkmn_min, c(type_1, type_2), val, colors = cols),
+  align='center',
+  type = "treemap",
+  # levelIsConstant = FALSE,
+  allowDrillToNode = TRUE,
+  levels = lvl_opts,
+  tooltip = list(valueDecimals = FALSE)
+  ) %>% 
+  hc_chart(
+    style = list(fontFamily = "Gloria Hallelujah")
+  ) %>% 
+  hc_size(height = 500)
+```
+
+## III. 다양한 그래프 형태 (3)
+
+```{r, echo=F, eval=T}
+hchart(princomp(USArrests, cor = TRUE), align='center')
+```
+
+## IV. 실습 (1)
+
+```{r, eval=T, echo=F}
+dt1 %>% 
+  count(EXMD_BZ_YYYY) %>% 
+  hchart('column', hcaes(x='EXMD_BZ_YYYY', y='n')) %>% 
+  hc_add_theme(hc_theme_flatdark())
+```
+
+## IV. 실습 (1)
+
+</br> - **example_g1e.csv** 파일을 불러옴
+
+</br> - **select** 함수를 이용해서 **EXMD_BZ_YYY, HGHT, WGHT, BMI**
+
+변수만 추출
+
+</br> - 데이터 안에 각 연도별 데이터가 몇개씩 존재하는지
+
+확인하는 그래프 그리기. (**count** 함수 이용)
+
+</br> - **highchart** 그리기. 차트 형태는 **column**
+
+테마는 **hc_theme_flatdark** 이용.
+
+## IV. 실습 (2)
+
+```{r, eval=T, echo=F}
+dt1 %>% 
+  hchart(type='scatter', hcaes(x="WGHT", y="HGHT", group="EXMD_BZ_YYYY")) %>% 
+  hc_colors(c('red','orange','yellow','green','blue','purple','pink')) %>%
+  hc_title(text='Correlation between Weight and Height', align='center') %>%
+  hc_subtitle(text='By Year', align='center') %>% 
+  hc_credits(enabled=T, text='By 09-15 공단 데이터') %>% 
+  hc_add_theme(hc_theme_538())
+```
+
+## IV. 실습 (2)
+
+</br> - 위의 **select**를 이용해 추출한 자료 이용
+
+-   **Weight**와 **Height**의 상관관계 파악하기
+
+-   차트 형태는 **scatter**
+
+-   제목: **Correlation between Weight and Height**
+
+-   부제: **By Year**
+
+-   제목과, 부제 둘 다 **가운데 정렬**
+
+-   캡션으로 **By 09-15 공단 데이터** 넣기
+
+-   테마는 **hc_theme_538** 이용
+
+## V. Reference
+
+**1. 참고할 만한 사이트 (1)**
+
+-   https://www.highcharts.com/blog/data-science/highcharts-for-r-users/?fbclid=IwAR1hDXWYPmucAuTjMRUNSm5iM_y4Pa6OF1eeOW8ohg5WwDmDpb29flFPVIc **(메인 사이트)**
+
+-   https://youngjunna.github.io/r/2019/07/15/highcharter-theme.html **(theme 관련)**
+
+-   Function reference • highcharter (jkunst.com) **(hcart 함수 인자 요소 관련)**
+
+-   Charts with highcharts • highcharter (jkunst.com) **(type of chart 관련)**
+
+## V. Reference
+
+**1. 참고할 만한 사이트 (2)**
+
+-   R로 그래프 그릴 때 깔끔하게 팔레트 선택하기(feat. colorspace) : kini'n creations (tistory.com) **(color 관련)**
+
+-   https://cran.r-project.org/web/packages/highcharter/highcharter.pdf **(hc_chart Index 및 사용방법)**
+
+## V. Reference
+
+**2. 강의록 작성 참고자료**
+
+-   https://www.kaggle.com/code/nulldata/beginners-guide-to-highchart-visual-in-r/report
+
+-   https://www.datacamp.com/tutorial/data-visualization-highcharter-r
+
+-   https://towardsdatascience.com/exploring-highcharts-in-r-f754143efda7
+
+-   https://jkunst.com/highcharter/index.html
